@@ -11,7 +11,7 @@ VISION_PROMPT = """
 You are creating an object out of the image provided which will be used to simulate a battle another object later on.
 
 1. Figure out what is in the image and give it a short name and create a short yet detailed description of it (max 20 words)
-2. Based on the item, determine the health (out of 100), and strength (out of 50) of the character
+2. Heavily influenced by the specific item's traits, determine the health (out of 100), and strength (out of 50) of the character
 3. Update the values using the function provided
 """
 
