@@ -1,10 +1,13 @@
 import pyxel
+import json
 
 SCREEN_WIDTH = 300
 SCREEN_HEIGHT = 200
 
 CENTER_X = SCREEN_WIDTH // 2
 CENTER_Y = SCREEN_HEIGHT // 2
+
+CHARACTER_SIZE = 32
 
 # make centered rectangle on the coords given
 def center_aligned_rect(center_x, center_y, w, h, color):
@@ -13,7 +16,7 @@ def center_aligned_rect(center_x, center_y, w, h, color):
 
     pyxel.rect(left, top, w, h, color)
 
-    # return bounds if it's a button
+    # return bounds (useful for buttons)
     right = left + w
     bottom = top + h
 
@@ -42,24 +45,44 @@ class Page():
 # main class
 class App():
     def __init__(self):
-        pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="hi")
+        pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Picture Battles!")
         pyxel.mouse(True)
 
         self.page = Page.MENU
 
-        # bounds
+        # button bounds
         self.character_selection_button = (0, 0, 0, 0)
         self.game_start_button = (0, 0, 0, 0)
+
+        # setup characters
+        self.characters_info = {}
+        with open("characters/info.json", 'r') as f:
+            self.characters_info = json.load(f)
+
+        self.character_1_x = 0
+        self.character_1_y = CENTER_Y - CHARACTER_SIZE // 2
+
+        self.character_2_x = SCREEN_WIDTH - CHARACTER_SIZE
+        self.character_2_y = CENTER_Y - CHARACTER_SIZE // 2
+
+        pyxel.images[0].load(0, 0, self.characters_info["character_1"]["icon"])
+        pyxel.images[1].load(0, 0, self.characters_info["character_2"]["icon"])
 
         pyxel.run(self.update, self.draw)
 
     def update_menu(self):
 
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+
             if pressed(self.character_selection_button):
-                self.page = Page.CHARACTER_SELECTION  # Switch to the game page
+                self.page = Page.CHARACTER_SELECTION
             elif pressed(self.game_start_button):
-                self.page = Page.GAME  # Switch to the game page
+
+                # disable mouse
+                pyxel.mouse(False)
+
+                # set page
+                self.page = Page.GAME
 
     def draw_menu(self):
 
@@ -81,10 +104,53 @@ class App():
         pass
 
     def update_game(self):
-        pass
+
+        # move characters around
+        character_1_speed = self.characters_info["character_1"]["speed"]
+        character_2_speed = self.characters_info["character_2"]["speed"]
+
+        if pyxel.btn(pyxel.KEY_W):
+            self.character_1_y -= character_1_speed
+        if pyxel.btn(pyxel.KEY_A):
+            self.character_1_x -= character_1_speed
+        if pyxel.btn(pyxel.KEY_S):
+            self.character_1_y += character_1_speed
+        if pyxel.btn(pyxel.KEY_D):
+            self.character_1_x += character_1_speed
+
+        if pyxel.btn(pyxel.KEY_UP):
+            self.character_2_y -= character_2_speed
+        if pyxel.btn(pyxel.KEY_LEFT):
+            self.character_2_x -= character_2_speed
+        if pyxel.btn(pyxel.KEY_DOWN):
+            self.character_2_y += character_2_speed
+        if pyxel.btn(pyxel.KEY_RIGHT):
+            self.character_2_x += character_2_speed
+
+        # prevent the characters from going out of bounds
+        self.character_1_x = max(0, min(SCREEN_WIDTH - CHARACTER_SIZE, self.character_1_x))
+        self.character_1_y = max(0, min(SCREEN_HEIGHT - CHARACTER_SIZE, self.character_1_y))
+
+        self.character_2_x = max(0, min(SCREEN_WIDTH - CHARACTER_SIZE, self.character_2_x))
+        self.character_2_y = max(0, min(SCREEN_HEIGHT - CHARACTER_SIZE, self.character_2_y))
 
     def draw_game(self):
-        pass
+        # pyxel.rect(self.character_1_x, self.character_1_y, 8, 8, pyxel.COLOR_LIGHT_BLUE)
+        # pyxel.rect(self.character_2_x, self.character_2_y, 8, 8, pyxel.COLOR_RED)
+
+        pyxel.blt(
+            self.character_1_x, self.character_1_y,
+            0, 0, 0, # image bank 0 @ u=0, v=0
+            CHARACTER_SIZE, CHARACTER_SIZE,
+            pyxel.COLOR_BLACK
+        )
+
+        pyxel.blt(
+            self.character_2_x, self.character_2_y,
+            1, 0, 0, # image bank 0 @ u=0, v=0
+            CHARACTER_SIZE, CHARACTER_SIZE,
+            pyxel.COLOR_BLACK
+        )
 
     def update(self):
         if self.page == Page.MENU:

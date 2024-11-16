@@ -7,11 +7,13 @@ from io import BytesIO
 from PIL import Image
 from threading import Thread
 
+IMAGE_SIZE = (32, 32)
+
 VISION_PROMPT = """
 You are creating an object out of the image provided which will be used to simulate a battle another object later on.
 
 1. Figure out what is in the image and give it a short name and create a short yet detailed description of it (max 20 words)
-2. Heavily influenced by the specific item's traits, determine the health (out of 100), and strength (out of 50) of the character
+2. Heavily influenced by the specific item's traits, determine the health (out of 100), speed (1 to 5, inclusive), and strength (out of 50) of the character
 3. Update the values using the function provided
 """
 
@@ -64,6 +66,7 @@ class Character():
                             "name": {"type": "string"},
                             "description": {"type": "string"},
                             "health": {"type": "integer", "minimum": 0, "maximum": 100},
+                            "speed": {"type": "integer", "minimum": 1, "maximum": 5},
                             "strength": {"type": "integer", "minimum": 0, "maximum": 50},
                         },
                         "required": ["description", "health", "strength"],
@@ -81,7 +84,7 @@ class Character():
         function_args = json.loads(function_call.arguments)
 
         # call the method to update the info
-        self.set_info(function_args["name"], function_args["description"], function_args["health"], function_args["strength"])
+        self.set_info(function_args["name"], function_args["description"], function_args["health"], function_args["speed"], function_args["strength"])
 
         # after updating the info, generate the image
         self.generate_img()
@@ -109,29 +112,34 @@ class Character():
         input_bytes = input_bytes.getvalue()
 
         output_bytes = rembg.remove(input_bytes)
-
         output_image = Image.open(BytesIO(output_bytes))
 
-        output_image.save(f"characters/{self.icon}", "PNG")
+        scaled_image = output_image.resize(IMAGE_SIZE, Image.NEAREST)
+
+        scaled_image.save(self.icon, "PNG")
 
     def wait_for_thread(self):
        self.thread.join()
 
-    def set_info(self, name, description, health, strength):
-        self.icon = f"{name}.png"
+    def set_info(self, name, description, health, speed, strength):
+        self.icon = f"characters/{name}.png"
         self.description = description
         self.health = health
+        self.speed = speed
         self.strength = strength
 
-    def get_icon(self):
-       return f"characters/{self.icon}"
+    def get_info(self):
+       return self.icon, self.description, self.health, self.speed, self.strength
 
-    def get_description(self):
-       return self.description
+    # def get_icon(self):
+    #    return f"characters/{self.icon}"
 
-    def get_health(self):
-       return self.health
+    # def get_description(self):
+    #    return self.description
+
+    # def get_health(self):
+    #    return self.health
     
-    def get_strength(self):
-       return self.strength
+    # def get_strength(self):
+    #    return self.strength
     

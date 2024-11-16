@@ -3,7 +3,7 @@ from gui import App
 import os
 import json
 
-UPDATE_CHARACTERS = False
+UPDATE_CHARACTERS = True
 ORIGINAL_PATHS = ("assets/fish.JPG", "assets/bottles.jpeg")
 
 def generate_characters():
@@ -19,26 +19,31 @@ def generate_characters():
             os.remove(file_path)
 
     # generate the characters
-    character1 = Character(ORIGINAL_PATHS[0])
-    character2 = Character(ORIGINAL_PATHS[1])
+    character_1 = Character(ORIGINAL_PATHS[0])
+    character_2 = Character(ORIGINAL_PATHS[1])
 
     # wait before accessing anything
-    character1.wait_for_thread()
-    character2.wait_for_thread()
+    character_1.wait_for_thread()
+    character_2.wait_for_thread()
+
+    character_1_info = character_1.get_info()
+    character_2_info = character_2.get_info()
 
     info = {
-        "character1": {
-            "icon": character1.get_icon(),
-            "description": character1.get_description(),
-            "health": character1.get_health(),
-            "strength": character1.get_strength()
+        "character_1": {
+            "icon": character_1_info[0],
+            "description": character_1_info[1],
+            "health": character_1_info[2],
+            "speed": character_1_info[3],
+            "strength": character_1_info[4]
         },
 
-        "character2": {
-            "icon": character2.get_icon(),
-            "description": character2.get_description(),
-            "health": character2.get_health(),
-            "strength": character2.get_strength()
+        "character_2": {
+            "icon": character_2_info[0],
+            "description": character_2_info[1],
+            "health": character_2_info[2],
+            "speed": character_2_info[3],
+            "strength": character_2_info[4]
         }
     }
 
@@ -60,7 +65,7 @@ if __name__ == "__main__":
     #     verify_characters()
     
     app = App()
-    
+
 
 
 ### open
