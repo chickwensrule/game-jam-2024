@@ -1,8 +1,9 @@
 from character import Character
+from gui import App
 import os
 import json
 
-UPDATE_CHARACTERS = True
+UPDATE_CHARACTERS = False
 ORIGINAL_PATHS = ("assets/fish.JPG", "assets/bottles.jpeg")
 
 def generate_characters():
@@ -51,13 +52,18 @@ def verify_characters():
         raise Exception("The character information file is missing, please regenerate the characters")
 
 if __name__ == "__main__":
-    if UPDATE_CHARACTERS:
-        print("Generating characters...")
-        generate_characters()
-    else:
-        print("Reusing characters...")
-        verify_characters()
+    # if UPDATE_CHARACTERS:
+    #     print("Generating characters...")
+    #     generate_characters()
+    # else:
+    #     print("Reusing characters...")
+    #     verify_characters()
     
-    with open("characters/info.json", 'r') as f:
-        info = json.load(f)
-        print(info)
+    app = App()
+    
+
+
+### open
+    # with open("characters/info.json", 'r') as f:
+    #     info = json.load(f)
+    #     print(info)
