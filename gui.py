@@ -1,5 +1,6 @@
 import pyxel
 import json
+from datetime import datetime
 
 SCREEN_WIDTH = 300
 SCREEN_HEIGHT = 200
@@ -32,9 +33,27 @@ def center_aligned_text(center_x, center_y, text, color):
 
     pyxel.text(left, top, text, color)
 
-# check bounds
-def pressed(bounds):
-    return bounds[0] < pyxel.mouse_x < bounds[1] and bounds[2] < pyxel.mouse_y < bounds[3]
+# check button bounds
+def pressed(button_bounds):
+    return button_bounds[0] < pyxel.mouse_x < button_bounds[1] and button_bounds[2] < pyxel.mouse_y < button_bounds[3]
+
+# check if collided with a barrier
+def check_barrier(x, y, left, right, top, bottom):
+    return not (
+        x + CHARACTER_SIZE <= left or  # left
+        x >= right or                 # right
+        y + CHARACTER_SIZE <= top or # above
+        y >= bottom # below
+    )
+
+# check all barrier collisions
+def check_collisions(x, y, new_x, new_y, barriers_bounds):
+    for l, r, t, b in barriers_bounds:
+        if check_barrier(new_x, new_y, l, r, t, b):
+            return x, y # collision
+
+    # bounded to walls
+    return max(0, min(SCREEN_WIDTH - CHARACTER_SIZE, new_x)), max(0, min(SCREEN_HEIGHT - CHARACTER_SIZE, new_y))
 
 # enum class
 class Page():
@@ -51,8 +70,8 @@ class App():
         self.page = Page.MENU
 
         # button bounds
-        self.character_selection_button = (0, 0, 0, 0)
-        self.game_start_button = (0, 0, 0, 0)
+        self.character_selection_button_bounds = (0, 0, 0, 0) # l, r, t, b
+        self.game_start_button_bounds = (0, 0, 0, 0) # l, r, t, b
 
         # setup characters
         self.characters_info = {}
@@ -68,15 +87,19 @@ class App():
         pyxel.images[0].load(0, 0, self.characters_info["character_1"]["icon"])
         pyxel.images[1].load(0, 0, self.characters_info["character_2"]["icon"])
 
+        # barriers
+        self.barriers = []
+        self.barriers_bounds = []
+
         pyxel.run(self.update, self.draw)
 
     def update_menu(self):
 
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
 
-            if pressed(self.character_selection_button):
+            if pressed(self.character_selection_button_bounds):
                 self.page = Page.CHARACTER_SELECTION
-            elif pressed(self.game_start_button):
+            elif pressed(self.game_start_button_bounds):
 
                 # disable mouse
                 pyxel.mouse(False)
@@ -90,11 +113,11 @@ class App():
         center_aligned_text(CENTER_X, CENTER_Y-20, "Game page", pyxel.COLOR_WHITE)
 
         # character button
-        self.character_selection_button = center_aligned_rect(CENTER_X, CENTER_Y, 90, 18, pyxel.COLOR_DARK_BLUE)
+        self.character_selection_button_bounds = center_aligned_rect(CENTER_X, CENTER_Y, 90, 18, pyxel.COLOR_DARK_BLUE)
         center_aligned_text(CENTER_X, CENTER_Y, "Character Selection", pyxel.COLOR_WHITE)
 
         # game button
-        self.game_start_button = center_aligned_rect(CENTER_X, CENTER_Y+24, 60, 18, pyxel.COLOR_DARK_BLUE)
+        self.game_start_button_bounds = center_aligned_rect(CENTER_X, CENTER_Y+24, 60, 18, pyxel.COLOR_DARK_BLUE)
         center_aligned_text(CENTER_X, CENTER_Y+24, "Start Game", pyxel.COLOR_WHITE)
 
     def update_character_selection(self):
@@ -105,39 +128,50 @@ class App():
 
     def update_game(self):
 
+        # new pos
+        character_1_new_x = self.character_1_x
+        character_1_new_y = self.character_1_y
+        character_2_new_x = self.character_2_x
+        character_2_new_y = self.character_2_y
+
         # move characters around
         character_1_speed = self.characters_info["character_1"]["speed"]
         character_2_speed = self.characters_info["character_2"]["speed"]
 
         if pyxel.btn(pyxel.KEY_W):
-            self.character_1_y -= character_1_speed
+            character_1_new_y -= character_1_speed
         if pyxel.btn(pyxel.KEY_A):
-            self.character_1_x -= character_1_speed
+            character_1_new_x -= character_1_speed
         if pyxel.btn(pyxel.KEY_S):
-            self.character_1_y += character_1_speed
+            character_1_new_y += character_1_speed
         if pyxel.btn(pyxel.KEY_D):
-            self.character_1_x += character_1_speed
+            character_1_new_x += character_1_speed
 
         if pyxel.btn(pyxel.KEY_UP):
-            self.character_2_y -= character_2_speed
+            character_2_new_y -= character_2_speed
         if pyxel.btn(pyxel.KEY_LEFT):
-            self.character_2_x -= character_2_speed
+            character_2_new_x -= character_2_speed
         if pyxel.btn(pyxel.KEY_DOWN):
-            self.character_2_y += character_2_speed
+            character_2_new_y += character_2_speed
         if pyxel.btn(pyxel.KEY_RIGHT):
-            self.character_2_x += character_2_speed
+            character_2_new_x += character_2_speed
 
-        # prevent the characters from going out of bounds
-        self.character_1_x = max(0, min(SCREEN_WIDTH - CHARACTER_SIZE, self.character_1_x))
-        self.character_1_y = max(0, min(SCREEN_HEIGHT - CHARACTER_SIZE, self.character_1_y))
+        # update based on collisions
+        self.character_1_x, self.character_1_y = check_collisions(
+            self.character_1_x, self.character_1_y,
+            character_1_new_x, character_1_new_y,
+            self.barriers_bounds
+        )
 
-        self.character_2_x = max(0, min(SCREEN_WIDTH - CHARACTER_SIZE, self.character_2_x))
-        self.character_2_y = max(0, min(SCREEN_HEIGHT - CHARACTER_SIZE, self.character_2_y))
+        self.character_2_x, self.character_2_y = check_collisions(
+            self.character_2_x, self.character_2_y,
+            character_2_new_x, character_2_new_y,
+            self.barriers_bounds
+        )
 
     def draw_game(self):
-        # pyxel.rect(self.character_1_x, self.character_1_y, 8, 8, pyxel.COLOR_LIGHT_BLUE)
-        # pyxel.rect(self.character_2_x, self.character_2_y, 8, 8, pyxel.COLOR_RED)
 
+        # draw characters
         pyxel.blt(
             self.character_1_x, self.character_1_y,
             0, 0, 0, # image bank 0 @ u=0, v=0
@@ -147,10 +181,12 @@ class App():
 
         pyxel.blt(
             self.character_2_x, self.character_2_y,
-            1, 0, 0, # image bank 0 @ u=0, v=0
+            1, 0, 0, # image bank 1 @ u=0, v=0
             CHARACTER_SIZE, CHARACTER_SIZE,
             pyxel.COLOR_BLACK
         )
+
+        self.barriers_bounds = [center_aligned_rect(CENTER_X, CENTER_Y, 50, 50, pyxel.COLOR_BROWN)]
 
     def update(self):
         if self.page == Page.MENU:
