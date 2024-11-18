@@ -48,12 +48,21 @@ def check_barrier(x, y, left, right, top, bottom):
 
 # check all barrier collisions
 def check_collisions(x, y, new_x, new_y, barriers_bounds):
+    final_x = new_x
+    final_y = new_y
+
     for l, r, t, b in barriers_bounds:
-        if check_barrier(new_x, new_y, l, r, t, b):
-            return x, y # collision
+        if check_barrier(new_x, y, l, r, t, b):
+            final_x = x # block x axis
+
+        if check_barrier(x, new_y, l, r, t, b):
+            final_y = y # block y axis
 
     # bounded to walls
-    return max(0, min(SCREEN_WIDTH - CHARACTER_SIZE, new_x)), max(0, min(SCREEN_HEIGHT - CHARACTER_SIZE, new_y))
+    return (
+        max(0, min(SCREEN_WIDTH - CHARACTER_SIZE, final_x)), 
+        max(0, min(SCREEN_HEIGHT - CHARACTER_SIZE, final_y))
+    )
 
 # enum class
 class Page():
