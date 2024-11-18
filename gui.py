@@ -4,7 +4,7 @@ import random
 from time import time
 
 SCREEN_WIDTH = 300
-SCREEN_HEIGHT = 200
+SCREEN_HEIGHT = 180
 
 CENTER_X = SCREEN_WIDTH // 2
 CENTER_Y = SCREEN_HEIGHT // 2
@@ -81,7 +81,7 @@ class Page():
 # main class
 class App():
     def __init__(self):
-        pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Item Battle!", )
+        pyxel.init(SCREEN_WIDTH, 200, title="Item Battle!", )
         pyxel.mouse(True)
 
         self.page = Page.MENU
@@ -91,7 +91,7 @@ class App():
         self.game_start_button_bounds = (0, 0, 0, 0) # l, r, t, b
 
         # game background
-        pyxel.images[0].load(0, 0, "assets/imgs/floor.png")
+        pyxel.images[0].load(0, 0, "assets/imgs/floor2.png")
 
         # setup characters
         self.characters_info = {}
@@ -101,12 +101,12 @@ class App():
         self.character_1_x = 0
         self.character_1_y = CENTER_Y - CHARACTER_SIZE // 2
         self.character_1_flip = 1
-        self.character_1_health = 100
+        self.character_1_health = self.characters_info["character_1"]["health"]
 
         self.character_2_x = SCREEN_WIDTH - CHARACTER_SIZE
         self.character_2_y = CENTER_Y - CHARACTER_SIZE // 2
         self.character_2_flip = 1
-        self.character_2_health = 100
+        self.character_2_health = self.characters_info["character_2"]["health"]
 
         pyxel.images[1].load(0, 0, self.characters_info["character_1"]["icon"])
         pyxel.images[1].load(32, 0, self.characters_info["character_2"]["icon"])
@@ -134,7 +134,7 @@ class App():
                 r = l + 16
                 b = t + 16
 
-                barrier_type = random.randint(0, 1)
+                barrier_type = 0 #random.randint(0, 1)
 
                 # check for overlap
                 if not (
@@ -237,6 +237,13 @@ class App():
                     50, 50,
                     pyxel.COLOR_BLACK
                 )
+        
+        # draw menu bar
+
+        pyxel.rect(0, SCREEN_HEIGHT, SCREEN_WIDTH, 20, pyxel.COLOR_BLACK)
+        center_aligned_text(2* SCREEN_WIDTH/3, SCREEN_HEIGHT + 10, "ROUND 1 | WASD: 10 | Arrows: 10", pyxel.COLOR_WHITE)
+        center_aligned_text(SCREEN_WIDTH/4, SCREEN_HEIGHT + 10, "00:00", pyxel.COLOR_GREEN)
+
 
         # draw barriers
         for l, _, t, _, barrier_type in self.barriers:
@@ -264,27 +271,40 @@ class App():
             pyxel.COLOR_BLACK
         )
 
-        self.character_1_health = 80
-        self.character_2_health = 80
+        self.character_1_health = 20
+        self.character_2_health = 20
+
+        character_1_original_health = self.characters_info["character_1"]["health"]
+        character_2_original_health = self.characters_info["character_2"]["health"]
 
         # draw health (back + health) for each
-        pyxel.rect(
+        pyxel.rect( # 100
             self.character_1_x, self.character_1_y - 6,
             32, 4,
+            pyxel.COLOR_BLACK
+        )
+        pyxel.rect( # max
+            self.character_1_x, self.character_1_y - 6,
+            character_1_original_health * 32/100, 4,
             pyxel.COLOR_GRAY
         )
-        pyxel.rect(
+        pyxel.rect( # curr
             self.character_1_x, self.character_1_y - 6,
             self.character_1_health * 32/100, 4,
             pyxel.COLOR_GREEN
         )
 
-        pyxel.rect(
+        pyxel.rect( # 100
             self.character_2_x, self.character_2_y - 6,
             32, 4,
+            pyxel.COLOR_BLACK
+        )
+        pyxel.rect( # max
+            self.character_2_x, self.character_2_y - 6,
+            character_2_original_health * 32/100, 4,
             pyxel.COLOR_GRAY
         )
-        pyxel.rect(
+        pyxel.rect( # curr
             self.character_2_x, self.character_2_y - 6,
             self.character_2_health * 32/100, 4,
             pyxel.COLOR_GREEN
