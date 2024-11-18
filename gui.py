@@ -2,6 +2,10 @@ import pyxel
 import json
 import random
 from time import time
+import textwrap
+from PyQt6.QtWidgets import QApplication, QFileDialog, QWidget
+from character import Character
+from threading import Thread
 
 SCREEN_WIDTH = 300
 SCREEN_HEIGHT = 180
@@ -10,6 +14,21 @@ CENTER_X = SCREEN_WIDTH // 2
 CENTER_Y = SCREEN_HEIGHT // 2
 
 CHARACTER_SIZE = 32
+
+def open_file_picker():
+    app = QApplication([])
+    window = QWidget()
+    window.hide() # hide
+    
+    # open file dialog
+    fp, _ = QFileDialog.getOpenFileName(window, "JPEG Only", "", "JPEG Files (*.jpeg *.jpg)")
+
+    app.quit()
+    return fp
+
+def update_json_file(new_info):
+    with open("characters/info.json", 'w') as f:
+        json.dump(new_info)
 
 # make centered rectangle on the coords given
 def center_aligned_rect(center_x, center_y, w, h, color):
@@ -85,10 +104,15 @@ class App():
         pyxel.mouse(True)
 
         self.page = Page.MENU
+        # self.round = 0
+        # self.start_time = int(time())
 
         # button bounds
         self.character_selection_button_bounds = (0, 0, 0, 0) # l, r, t, b
         self.game_start_button_bounds = (0, 0, 0, 0) # l, r, t, b
+
+        self.character_1_change_button_bounds = (0, 0, 0, 0)
+        self.character_2_change_button_bounds = (0, 0, 0, 0)
 
         # game background
         pyxel.images[0].load(0, 0, "assets/imgs/floor2.png")
@@ -173,11 +197,97 @@ class App():
         self.game_start_button_bounds = center_aligned_rect(CENTER_X, CENTER_Y+24, 60, 18, pyxel.COLOR_DARK_BLUE)
         center_aligned_text(CENTER_X, CENTER_Y+24, "Start Game", pyxel.COLOR_WHITE)
 
+        # characters
+        self.make_character(
+            "character_1",
+            0, 0,
+            50 - CHARACTER_SIZE, SCREEN_HEIGHT - 20
+        )
+
+        self.make_character(
+            "character_2",
+            32, 0,
+            SCREEN_WIDTH - 70, SCREEN_HEIGHT - 20
+        )
+
+    def make_character(self, key, u, v, x, y, show_description=False):
+        character_info = self.characters_info[key]
+        health = character_info["health"]
+        speed = character_info["speed"]
+        strength = character_info["strength"]
+
+        pyxel.text(x, y, f"Health: {health}", pyxel.COLOR_WHITE)
+        pyxel.text(x, y+10, f"Speed: {speed}", pyxel.COLOR_WHITE)
+        pyxel.text(x, y+20, f"Strength: {strength}", pyxel.COLOR_WHITE)
+
+        pyxel.blt(
+            x, y-40,
+            1, u, v, # image bank 1
+            CHARACTER_SIZE, CHARACTER_SIZE,
+            pyxel.COLOR_BLACK
+        )
+
+        if show_description:
+            description = character_info["description"]
+
+            wrapped = textwrap.fill(description, width=20)
+
+            pyxel.text(x, y+30, f"[Description]\n{wrapped}", pyxel.COLOR_WHITE)
+        else: # show the wasd/arrow thing
+            if key == "character_1":
+                pyxel.text(x, y-55, "Left (WASD)", pyxel.COLOR_WHITE)
+            elif key == "character_2":
+                pyxel.text(x, y-55, "Right (Arrows)", pyxel.COLOR_WHITE)
+
     def update_character_selection(self):
-        pass
+
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            key = ""
+
+            if pressed(self.character_1_change_button_bounds):
+                key = "character_1"
+            elif pressed(self.character_2_change_button_bounds):
+                key = "character_2"
+            else:
+                return # exit otherwise
+            
+            input_image_path = open_file_picker()
+
+            # put in thread so the player can do stuff while it's processing
+            thread = Thread(target=self.character_selection_pressed, args=(key, input_image_path))
+            thread.start()
+
+    def character_selection_pressed(self, key, input_image_path):
+        character = Character(input_image_path)
+        character.wait_for_thread()
+
+        print(f"{key} done")
+
 
     def draw_character_selection(self):
-        pass
+
+        center_aligned_text(CENTER_X, 20, "Character Selection", pyxel.COLOR_WHITE)
+
+        # characters
+        self.make_character(
+            "character_1",
+            0, 0,
+            80 - CHARACTER_SIZE, 80,
+            show_description=True
+        )
+
+        self.character_1_change_button_bounds = center_aligned_rect(80, 165, 60, 16, pyxel.COLOR_DARK_BLUE)
+        center_aligned_text(80, 165, "Upload Photo", pyxel.COLOR_WHITE)
+
+        self.make_character(
+            "character_2",
+            32, 0,
+            SCREEN_WIDTH - CHARACTER_SIZE - 80, 80,
+            show_description=True
+        )
+
+        self.character_2_change_button_bounds = center_aligned_rect(SCREEN_WIDTH - 80, 165, 60, 16, pyxel.COLOR_DARK_BLUE)
+        center_aligned_text(SCREEN_WIDTH - 80, 165, "Upload Photo", pyxel.COLOR_WHITE)
 
     def update_game(self):
 
@@ -241,7 +351,7 @@ class App():
         # draw menu bar
 
         pyxel.rect(0, SCREEN_HEIGHT, SCREEN_WIDTH, 20, pyxel.COLOR_BLACK)
-        center_aligned_text(2* SCREEN_WIDTH/3, SCREEN_HEIGHT + 10, "ROUND 1 | WASD: 10 | Arrows: 10", pyxel.COLOR_WHITE)
+        center_aligned_text(3* SCREEN_WIDTH/4, SCREEN_HEIGHT + 10, f"ROUND 1 | WASD: 10 | Arrows: 10", pyxel.COLOR_WHITE)
         center_aligned_text(SCREEN_WIDTH/4, SCREEN_HEIGHT + 10, "00:00", pyxel.COLOR_GREEN)
 
 

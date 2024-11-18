@@ -1,11 +1,12 @@
 from openai import OpenAI
 import base64
 import json
-import rembg
 import requests
 from io import BytesIO
 from PIL import Image
 from threading import Thread
+import cv2
+import numpy as np
 
 IMAGE_SIZE = (32, 32)
 
@@ -30,6 +31,7 @@ class Character():
         self.thread.start()
         
     def process_img(self, path):
+        print("Processing image...")
         base64_image = encode_image(path)
 
         # generate the info
@@ -90,6 +92,7 @@ class Character():
         self.generate_img()
 
     def generate_img(self):
+        print("Generating pixelated image...")
 
         # generate the image
         response = self.client.images.generate(
@@ -102,21 +105,42 @@ class Character():
 
         image_url = response.data[0].url
         print(image_url)
-        image_response = requests.get(image_url)
 
+        print("Removing background...")
+        image_response = requests.get(image_url)
         image = Image.open(BytesIO(image_response.content))
 
-        # convert to bytes stream
-        input_bytes = BytesIO()
-        image.save(input_bytes, format='PNG')
-        input_bytes = input_bytes.getvalue()
+        # convert to opencv format
+        open_cv_img = np.array(image)
+        open_cv_img = cv2.cvtColor(open_cv_img, cv2.COLOR_RGB2BGR) # convert to bgr
 
-        output_bytes = rembg.remove(input_bytes)
-        output_image = Image.open(BytesIO(output_bytes))
+        hsv = cv2.cvtColor(open_cv_img, cv2.COLOR_BGR2HSV) # convert to hsv
 
-        scaled_image = output_image.resize(IMAGE_SIZE, Image.NEAREST)
+        # make a range for background
+        lower = np.array((0, 0, 200))
+        upper = np.array((180, 30, 255))
+
+        # detect background mask
+        mask = cv2.inRange(hsv, lower, upper)
+        
+        # invert to get the foreground
+        mask_inv = cv2.bitwise_not(mask)
+        
+        # apply mask to get the foreground (and)
+        result = cv2.bitwise_and(open_cv_img, open_cv_img, mask=mask_inv)
+        
+        # add an alpha channel for transparency
+        result_with_alpha = cv2.cvtColor(result, cv2.COLOR_BGR2RGBA)
+        result_with_alpha[:, :, 3] = mask_inv # set alpha to 0 for bg of all rows & columns
+
+        # convert back to pil
+        result_image = Image.fromarray(result_with_alpha, 'RGBA')
+        
+        # Resize the image as per the desired size
+        scaled_image = result_image.resize(IMAGE_SIZE, Image.NEAREST)
 
         scaled_image.save(self.icon, "PNG")
+        print("Image saved")
 
     def wait_for_thread(self):
        self.thread.join()
@@ -130,16 +154,4 @@ class Character():
 
     def get_info(self):
        return self.icon, self.description, self.health, self.speed, self.strength
-
-    # def get_icon(self):
-    #    return f"characters/{self.icon}"
-
-    # def get_description(self):
-    #    return self.description
-
-    # def get_health(self):
-    #    return self.health
-    
-    # def get_strength(self):
-    #    return self.strength
     
