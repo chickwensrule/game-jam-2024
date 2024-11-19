@@ -57,6 +57,9 @@ def verify_characters():
         raise Exception("The character information file is missing, please regenerate the characters")
 
 if __name__ == "__main__":
+    # character_1 = Character(ORIGINAL_PATHS[0])
+    # character_1.wait_for_thread()
+    # print(character_1.get_info())
     # if UPDATE_CHARACTERS:
     #     print("Generating characters...")
     #     generate_characters()
