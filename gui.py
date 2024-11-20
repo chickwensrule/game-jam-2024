@@ -454,10 +454,6 @@ class App():
 
     def update_game(self):
 
-        # check notif time & reset accordingly
-        if time() - self.notification_start_time > 5:
-            self.notification = ""
-
         # new pos
         character_1_new_x = self.character_1_x
         character_1_new_y = self.character_1_y
@@ -682,6 +678,10 @@ class App():
             self.update_character_selection()
         elif self.page == Page.GAME:
             self.update_game()
+
+        # check notif time & reset accordingly
+        if time() - self.notification_start_time > 5:
+            self.notification = ""
 
     def draw(self):
         pyxel.cls(0)
