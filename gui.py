@@ -152,6 +152,56 @@ class App():
         # barriers
         pyxel.images[2].load(0, 0, "assets/imgs/cone.png")
 
+        # sounds
+        pyxel.sounds[0].set(
+            "c2c3",
+            "p",
+            "77",
+            "n",
+            5
+        )
+
+        pyxel.sounds[1].set(
+            "e2e3",
+            "p",
+            "77",
+            "n",
+            5
+        )
+
+        # bg music
+
+        pyxel.sounds[2].set( # main
+            "a2b2c2",
+            "t",
+            "5",
+            "n",
+            140
+        )
+
+        pyxel.sounds[3].set(
+            "a1e1g1d1e1e2",
+            "p",
+            "3",
+            "n",
+            10
+        )
+
+        pyxel.sounds[4].set(
+            "a1b3c4c4c3b1",
+            "p",
+            "4",
+            "f",
+            70
+        )
+
+        pyxel.musics[0].set(
+            [2, 2, 2, 2],
+            [3, 4, 3, 4]
+        )
+
+        pyxel.playm(0, loop=True)
+
 
         pyxel.run(self.update, self.draw)
 
@@ -211,6 +261,7 @@ class App():
 
                 # update page
                 self.page = Page.GAME
+                pyxel.stop()
 
     def draw_menu(self):
 
@@ -220,7 +271,6 @@ class App():
             for y in range(0, SCREEN_HEIGHT, 50):
                 yi = y//50
 
-                print(xi, yi)
                 pyxel.blt(
                     x, y,
                     0, self.stars_bg[xi][yi], 80,
@@ -444,6 +494,7 @@ class App():
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             if pressed(self.game_back_button_bounds):
                 self.page = Page.MENU
+                pyxel.playm(0, loop=True)
 
         # attack
         if pyxel.btnp(pyxel.KEY_C):
@@ -452,6 +503,7 @@ class App():
                 self.character_2_x + CHARACTER_SIZE // 4, self.character_2_x + 3 * CHARACTER_SIZE // 4,
                 self.character_2_y + CHARACTER_SIZE // 4, self.character_2_y + 3 * CHARACTER_SIZE // 4,
             ):
+                pyxel.play(0, 0) # sound
                 strength = self.characters_info["character_1"]["strength"]
 
                 self.character_2_health -= random.randint(1, strength)
@@ -461,6 +513,8 @@ class App():
                 self.character_1_x + CHARACTER_SIZE // 4, self.character_1_x + 3 * CHARACTER_SIZE // 4,
                 self.character_1_y + CHARACTER_SIZE // 4, self.character_1_y + 3 * CHARACTER_SIZE // 4,
             ):
+                # sound
+                pyxel.play(0, 1) # sound
                 strength = self.characters_info["character_2"]["strength"]
 
                 self.character_1_health -= random.randint(1, strength)
@@ -491,6 +545,7 @@ class App():
                     self.notification = "Tie, nobody won!"
 
                 self.page = Page.MENU
+                pyxel.playm(0, loop=True)
 
                 return # exit
 
