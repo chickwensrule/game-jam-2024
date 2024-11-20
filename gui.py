@@ -5,7 +5,6 @@ from time import time
 import textwrap
 from PyQt6.QtWidgets import QApplication, QFileDialog, QWidget
 from character import Character
-from threading import Thread
 from datetime import datetime, timezone
 from PIL import Image
 import os
@@ -289,6 +288,11 @@ class App():
             100, 60,
             pyxel.COLOR_BLACK
         )
+
+        # desc
+        pyxel.text(10, 10, textwrap.fill("Battle against items by uploading images in the character selection menu!", 20), pyxel.COLOR_WHITE)
+        pyxel.text(10, 40, textwrap.fill("(characters are generated using OpenAI Vision & DALLE)", 20), pyxel.COLOR_GRAY)
+        pyxel.text(SCREEN_WIDTH - 20*pyxel.FONT_WIDTH - 10, 10, textwrap.fill(f"WASD movement 'C' attack for {self.characters_info['character_1']['icon'][11:-4]} (left), arrow keys movement '/' attack for {self.characters_info['character_2']['icon'][11:-4]} (right)", 20), pyxel.COLOR_WHITE)
 
         # character button
         self.character_selection_button_bounds = center_aligned_rect(CENTER_X, CENTER_Y+20, 84, 16, pyxel.COLOR_DARK_BLUE)
