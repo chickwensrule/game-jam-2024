@@ -428,6 +428,8 @@ class App():
         # title
         center_aligned_text(CENTER_X, 20, "Character Selection", pyxel.COLOR_WHITE)
 
+        pyxel.text(SCREEN_WIDTH - 20*pyxel.FONT_WIDTH , 10, textwrap.fill(f"All characters should be facing RIGHT!", 20), pyxel.COLOR_WHITE)
+
         # back button
         self.character_selection_back_button_bounds = center_aligned_rect(CENTER_X - 60, 20, 24, 10, pyxel.COLOR_RED)
         center_aligned_text(CENTER_X - 60, 20, "Back", pyxel.COLOR_WHITE)

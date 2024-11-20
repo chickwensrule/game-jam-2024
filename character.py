@@ -25,9 +25,6 @@ class Character():
     def __init__(self, image_path):
         self.client = OpenAI()
 
-        # put it in a thread to allow multiple characters to be created at the same time
-        # self.thread = Thread(target=self.process_img, args=(image_path, ))
-        # self.thread.start()
         self.process_img(image_path)
         
     def process_img(self, path):
@@ -61,12 +58,12 @@ class Character():
             functions=[
                 {
                     "name": "set_info",
-                    "description": "Set the character's name and attributes based on the description, health, speed, and strength.",
+                    "description": "Set character attributes based on the description, health, speed, and strength.",
                     "parameters": {
                         "type": "object",
                         "properties": {
                             "name": {"type": "string"},
-                            "description": {"type": "string"}, # maybe restrict later?
+                            "description": {"type": "string"},
                             "health": {"type": "integer", "minimum": 0, "maximum": 100},
                             "speed": {"type": "integer", "minimum": 1, "maximum": 5},
                             "strength": {"type": "integer", "minimum": 0, "maximum": 50},
