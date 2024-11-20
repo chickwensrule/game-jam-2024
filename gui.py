@@ -82,10 +82,13 @@ def check_collisions(x, y, new_x, new_y, barriers):
     final_y = new_y
 
     for l, r, t, b, _ in barriers:
-        if check_barrier(new_x, y, l, r, t, b):
+        w = r-l
+        h = b-t
+
+        if check_barrier(new_x, y, l + w//4, r - w//4, t + h//4, b - h//4):
             final_x = x # block x axis
 
-        if check_barrier(x, new_y, l, r, t, b):
+        if check_barrier(x, new_y, l + w//4, r - w//4, t + h//4, b - h//4):
             final_y = y # block y axis
 
     # bounded to walls
@@ -151,6 +154,7 @@ class App():
 
         # barriers
         pyxel.images[2].load(0, 0, "assets/imgs/cone.png")
+        # pyxel.images[2].load(16, 0, "assets/imgs/spike2.png")
 
         # sounds
         pyxel.sounds[0].set(
@@ -227,7 +231,7 @@ class App():
                 r = l + 16
                 b = t + 16
 
-                barrier_type = 0
+                barrier_type = 0#random.randint(0,1)
 
                 # check for overlap
                 if not (
@@ -494,23 +498,22 @@ class App():
 
         # attack
         if pyxel.btnp(pyxel.KEY_C):
+            pyxel.play(0, 0) # sound
             if check_barrier(
                 self.character_1_x, self.character_1_y,
                 self.character_2_x + CHARACTER_SIZE // 4, self.character_2_x + 3 * CHARACTER_SIZE // 4,
                 self.character_2_y + CHARACTER_SIZE // 4, self.character_2_y + 3 * CHARACTER_SIZE // 4,
             ):
-                pyxel.play(0, 0) # sound
                 strength = self.characters_info["character_1"]["strength"]
 
                 self.character_2_health -= random.randint(1, strength)
         if pyxel.btnp(pyxel.KEY_SLASH):
+            pyxel.play(0, 1) # sound
             if check_barrier(
                 self.character_2_x, self.character_2_y,
                 self.character_1_x + CHARACTER_SIZE // 4, self.character_1_x + 3 * CHARACTER_SIZE // 4,
                 self.character_1_y + CHARACTER_SIZE // 4, self.character_1_y + 3 * CHARACTER_SIZE // 4,
             ):
-                # sound
-                pyxel.play(0, 1) # sound
                 strength = self.characters_info["character_2"]["strength"]
 
                 self.character_1_health -= random.randint(1, strength)
@@ -620,6 +623,12 @@ class App():
 
         # draw characters
         animate = int(time() * 2) % 2
+
+        # animate attack
+        if pyxel.btnp(pyxel.KEY_C):
+            pyxel.rect(self.character_1_x+(33 if self.character_1_flip == 1 else -6), self.character_1_y, 2, 16, pyxel.COLOR_GRAY)
+        if pyxel.btnp(pyxel.KEY_SLASH):
+            pyxel.rect(self.character_2_x+(33 if self.character_2_flip == 1 else -6), self.character_2_y, 2, 16, pyxel.COLOR_GRAY)
 
         pyxel.blt(
             self.character_1_x, self.character_1_y,
