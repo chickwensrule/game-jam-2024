@@ -141,7 +141,7 @@ class App():
         self.update_stars_bg()
 
         # title
-        pyxel.images[0].load(50, 0, "assets/imgs/title2.png")
+        pyxel.images[0].load(50, 0, "assets/imgs/title3.png")
 
         # setup characters
         self.characters_info = {}
