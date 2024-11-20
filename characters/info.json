@@ -1,0 +1,16 @@
+{
+    "character_1": {
+        "icon": "characters/Goldfish.png",
+        "description": "Curious fish with vibrant coloration, agile fins, and a small mouth for feeding.",
+        "health": 80,
+        "speed": 3,
+        "strength": 10
+    },
+    "character_2": {
+        "icon": "characters/Student01.png",
+        "description": "A focused student dressed in a red hoodie, ready for challenges ahead.",
+        "health": 80,
+        "speed": 3,
+        "strength": 10
+    }
+}
